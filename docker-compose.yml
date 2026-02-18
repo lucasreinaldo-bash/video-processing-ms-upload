@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  ms-upload:
+    build: .
+    container_name: video-processing-ms-upload
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=production
+      - PORT=3002
+      - DATABASE_URL=postgresql://postgres:postgres123@postgres:5432/video_processing_upload?schema=public
+      - MINIO_ENDPOINT=minio
+      - MINIO_PORT=9000
+      - MINIO_USE_SSL=false
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin123
+      - MINIO_BUCKET_VIDEOS=videos
+      - MINIO_BUCKET_THUMBNAILS=thumbnails
+      - RABBITMQ_URL=amqp://admin:admin123@rabbitmq:5672
+      - RABBITMQ_QUEUE_VIDEO_PROCESSING=video.processing
+      - RABBITMQ_QUEUE_VIDEO_FAILED=video.processing.failed
+      - JWT_SECRET=your-super-secret-jwt-key-change-in-production
+      - MAX_FILE_SIZE=524288000
+      - ALLOWED_MIME_TYPES=video/mp4,video/avi,video/mov,video/quicktime
+      - CORS_ORIGINS=http://localhost:3000
+    depends_on:
+      - postgres
+      - minio
+      - rabbitmq
+    networks:
+      - video-processing-network
+    restart: unless-stopped
+
+networks:
+  video-processing-network:
+    external: true
+    name: video-processing-infrastructure_video-processing-network
+
+# Note: postgres, minio, and rabbitmq are defined in the infrastructure docker-compose

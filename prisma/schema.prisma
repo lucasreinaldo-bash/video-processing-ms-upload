@@ -1,0 +1,45 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// VIDEO MODEL
+// ============================================================================
+model Video {
+  id          String   @id @default(cuid())
+  userId      String   // ID do usuário que fez upload
+  filename    String   // Nome original do arquivo
+  storageKey  String   @unique // Chave no MinIO (S3)
+  mimeType    String   // Tipo MIME (video/mp4, etc)
+  size        BigInt   // Tamanho em bytes
+  duration    Float?   // Duração em segundos
+  status      VideoStatus @default(PENDING)
+  
+  // Metadados de processamento
+  processingJobId String?  @unique
+  thumbnailUrl    String?
+  processedUrl    String?
+  errorMessage    String?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@map("videos")
+}
+
+enum VideoStatus {
+  PENDING       // Aguardando processamento
+  PROCESSING    // Em processamento
+  COMPLETED     // Processado com sucesso
+  FAILED        // Falha no processamento
+}
